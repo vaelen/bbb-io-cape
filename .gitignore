@@ -1,0 +1,26 @@
+# KiCad backup files
+*-backups/
+*.kicad_prl
+*~
+\#*\#
+*.bak
+*.bck
+_autosave-*
+
+# KiCad lock files
+*.lck
+
+# Footprint cache
+fp-info-cache
+
+# Freerouting temporary files
+temp-*.dsn
+
+# Freerouting files
+freerouting*
+
+# Fabrication toolkit options (user-specific)
+fabrication-toolkit-options.json
+
+# Production outputs (regenerate as needed)
+production/
