@@ -74,7 +74,11 @@ else
         echo "Available I2C devices on bus $I2C_BUS:"
         i2cdetect -y -r $I2C_BUS
         echo ""
-        read -p "Enter EEPROM address manually (e.g., 0x57): " I2C_ADDR
+        read -p "Enter EEPROM address manually [0x55]: " I2C_ADDR
+        if [ -z "$I2C_ADDR" ]; then
+            I2C_ADDR="0x55"
+            info "Using default address: $I2C_ADDR"
+        fi
     else
         I2C_ADDR="$FOUND_ADDR"
         info "Found EEPROM at address: $I2C_ADDR"
@@ -109,7 +113,7 @@ read -p "Press Enter when TP1 is grounded... "
 # Step 2: Create device node if it doesn't exist
 if [ ! -d "$DEVICE_PATH" ]; then
     info "Creating I2C device node..."
-    echo "$DEVICE_TYPE $I2C_ADDR" > /sys/bus/i2c/devices/i2c-${I2C_BUS}/new_device
+    echo "$DEVICE_TYPE ${I2C_ADDR}" > /sys/bus/i2c/devices/i2c-${I2C_BUS}/new_device
     sleep 0.5
 
     if [ ! -d "$DEVICE_PATH" ]; then
@@ -167,6 +171,5 @@ echo ""
 echo "  The cape EEPROM has been programmed successfully."
 echo ""
 echo "  To verify cape detection, reboot the BeagleBone and run:"
-echo "    cat /sys/devices/platform/bone_capemgr/slots"
 echo "    dmesg | grep -i cape"
 echo ""
