@@ -60,9 +60,8 @@
 		/* I2C1 */
 		"P9.17",	/* i2c1_scl */
 		"P9.18",	/* i2c1_sda */
-		/* I2C2 (also used for cape EEPROM) */
-		"P9.19",	/* i2c2_scl */
-		"P9.20",	/* i2c2_sda */
+		/* I2C2 - Note: P9.19/P9.20 pins are already configured by base system
+		 * for cape EEPROM, so we don't claim exclusive use of them */
 		/* Analog inputs */
 		"P9.33",	/* ain4 */
 		"P9.35",	/* ain6 */
@@ -229,29 +228,11 @@
 	};
 
 	/*
-	 * Fragment 8: Pin mux configuration for I2C2
-	 * P9.19 = i2c2_scl (mode 3) - offset 0x17c (uart1_rtsn -> i2c2_scl)
-	 * P9.20 = i2c2_sda (mode 3) - offset 0x178 (uart1_ctsn -> i2c2_sda)
-	 * Note: I2C2 is typically enabled by default for cape EEPROM
-	 */
-	fragment@8 {
-		target = <&am33xx_pinmux>;
-		__overlay__ {
-			bb_io_cape_i2c2_pins: pinmux_bb_io_cape_i2c2_pins {
-				pinctrl-single,pins = <
-					0x17c 0x33	/* P9.19 i2c2_scl - input, pullup, mode 3 */
-					0x178 0x33	/* P9.20 i2c2_sda - input, pullup, mode 3 */
-				>;
-			};
-		};
-	};
-
-	/*
-	 * Fragment 9: Pin mux for RTC signals
+	 * Fragment 8: Pin mux for RTC signals
 	 * P9.12 (GPIO 60) = 32KHz clock output from DS3231MZ - offset 0x078 (gpmc_ben1)
 	 * P8.28 (GPIO 88) = Alarm interrupt (active low) - offset 0x0e8 (lcd_pclk)
 	 */
-	fragment@9 {
+	fragment@8 {
 		target = <&am33xx_pinmux>;
 		__overlay__ {
 			bb_io_cape_rtc_pins: pinmux_bb_io_cape_rtc_pins {
@@ -264,15 +245,15 @@
 	};
 
 	/*
-	 * Fragment 10: Configure I2C2 and add RTC device
+	 * Fragment 9: Configure I2C2 and add RTC device
 	 * DS3231MZ RTC at address 0x68 with interrupt on GPIO 88
+	 * Note: I2C2 pins are already configured by the base system for cape EEPROM,
+	 * so we don't reconfigure them here - just add the RTC device.
 	 */
-	fragment@10 {
+	fragment@9 {
 		target = <&i2c2>;
 		__overlay__ {
 			status = "okay";
-			pinctrl-names = "default";
-			pinctrl-0 = <&bb_io_cape_i2c2_pins>;
 			clock-frequency = <400000>;
 
 			#address-cells = <1>;
@@ -291,10 +272,10 @@
 	};
 
 	/*
-	 * Fragment 11: Pin mux configuration for GPIO pins (D1-D9 connectors)
+	 * Fragment 10: Pin mux configuration for GPIO pins (D1-D9 connectors)
 	 * All configured as GPIO mode 7, output with pull-down
 	 */
-	fragment@11 {
+	fragment@10 {
 		target = <&am33xx_pinmux>;
 		__overlay__ {
 			bb_io_cape_gpio_pins: pinmux_bb_io_cape_gpio_pins {
@@ -340,12 +321,12 @@
 	};
 
 	/*
-	 * Fragment 12: Enable the ADC for analog inputs
+	 * Fragment 11: Enable the ADC for analog inputs
 	 * A1: AIN0 (P9.39), AIN4 (P9.33)
 	 * A2: AIN2 (P9.37), AIN6 (P9.35)
 	 * A3: AIN3 (P9.38), AIN5 (P9.36)
 	 */
-	fragment@12 {
+	fragment@11 {
 		target = <&tscadc>;
 		__overlay__ {
 			status = "okay";
@@ -360,10 +341,10 @@
 	};
 
 	/*
-	 * Fragment 13: Create GPIO helper node for userspace access
+	 * Fragment 12: Create GPIO helper node for userspace access
 	 * This exports the GPIO pins used by digital connectors and RTC signals
 	 */
-	fragment@13 {
+	fragment@12 {
 		target-path = "/";
 		__overlay__ {
 			bb_io_cape_gpios {

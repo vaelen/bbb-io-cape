@@ -70,6 +70,22 @@ A pre-compiled overlay (`BB-IO-CAPE-00A0.dtbo`) is included. To install on your 
 sudo cp BB-IO-CAPE-00A0.dtbo /lib/firmware/
 ```
 
+**Important:** The universal cape overlay and conflicting peripherals must be disabled to avoid pin conflicts. Edit `/boot/uEnv.txt` and make the following changes:
+
+```bash
+# Use the standard (non-universal) device tree
+dtb=am335x-boneblack.dtb
+
+# Comment out the universal cape enable
+#enable_uboot_cape_universal=1
+
+# Disable HDMI and audio (they conflict with GPIO pins)
+disable_uboot_overlay_video=1
+disable_uboot_overlay_audio=1
+```
+
+Then reboot for changes to take effect.
+
 ### Compiling from Source (Optional)
 
 If you need to modify the overlay or compile it yourself:
