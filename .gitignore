@@ -6,6 +6,7 @@
 *.bak
 *.bck
 _autosave-*
+*.bin
 
 # KiCad lock files
 *.lck
