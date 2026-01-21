@@ -30,7 +30,7 @@ The cape connects via the standard BeagleBone Black P8 and P9 expansion headers 
 
 | Connector | Pin 1   | Pin 2   | Function            |
 |-----------|---------|---------|---------------------|
-| UART1     | P9 / 26 | P9 / 24 | UART1 RX / TX       |
+| UART1     | P9 / 26 | P9 / 24 | UART1 RX / TX       |dtc -@ -I dts -O dtb -o BB-IO-CAPE-00A0.dtbo BB-IO-CAPE-00A0.dts
 | UART2     | P9 / 22 | P9 / 21 | UART2 RX / TX       |
 | UART4     | P9 / 11 | P9 / 13 | UART4 RX / TX       |
 | I2C1      | P9 / 17 | P9 / 18 | I2C1 SCL / SDA      |
@@ -54,6 +54,67 @@ The cape connects via the standard BeagleBone Black P8 and P9 expansion headers 
 ## Real Time Clock
 
 The real time clock is wired into the I2C2 bus as device 0x68.
+
+## Device Tree Overlay
+
+The cape includes a device tree overlay (`BB-IO-CAPE-00A0.dts`) that configures all peripherals for use under Linux.
+
+The filename `BB-IO-CAPE-00A0` matches the part number (`BB-IO-CAPE`) and version (`00A0`) stored in the cape EEPROM, allowing U-Boot to automatically load the overlay at boot.
+
+### Installing the Pre-compiled Overlay
+
+A pre-compiled overlay (`BB-IO-CAPE-00A0.dtbo`) is included. To install on your BeagleBone:
+
+```bash
+# Copy the overlay to the firmware directory
+sudo cp BB-IO-CAPE-00A0.dtbo /lib/firmware/
+```
+
+### Compiling from Source (Optional)
+
+If you need to modify the overlay or compile it yourself:
+
+```bash
+# Preprocess and compile
+cpp -nostdinc -I /usr/src/linux-headers-$(uname -r)/include \
+    -undef -x assembler-with-cpp BB-IO-CAPE-00A0.dts | \
+    dtc -@ -I dts -O dtb -o BB-IO-CAPE-00A0.dtbo -
+```
+
+### What the Overlay Configures
+
+| Peripheral | Configuration                                     |
+|------------|---------------------------------------------------|
+| UART1      | P9.24 (TX), P9.26 (RX) - `/dev/ttyS1`             |
+| UART2      | P9.21 (TX), P9.22 (RX) - `/dev/ttyS2`             |
+| UART4      | P9.13 (TX), P9.11 (RX) - `/dev/ttyS4`             |
+| I2C1       | P9.17 (SCL), P9.18 (SDA) - `/dev/i2c-1` @ 400kHz  |
+| I2C2       | P9.19 (SCL), P9.20 (SDA) - `/dev/i2c-2` @ 400kHz  |
+| ADC        | Channels 0, 2, 3, 4, 5, 6 enabled                 |
+| DS3231 RTC | I2C2 @ 0x68 - `/dev/rtc1`                         |
+| GPIO D1-D9 | 18 pins configured as outputs                     |
+| RTC 32KHz  | GPIO 60 (P9.12) - 32KHz clock output              |
+| RTC Alarm  | GPIO 88 (P8.28) - Alarm interrupt (active low)    |
+
+### Verifying the Overlay
+
+After loading the overlay, verify the devices are available:
+
+```bash
+# Check RTC
+ls /dev/rtc*
+hwclock -r -f /dev/rtc1
+
+# Check I2C devices
+i2cdetect -y -r 1   # I2C1 bus
+i2cdetect -y -r 2   # I2C2 bus (should show RTC at 0x68)
+
+# Check UARTs
+ls /dev/ttyS*
+
+# Check ADC values
+cat /sys/bus/iio/devices/iio:device0/in_voltage0_raw
+```
 
 ## Manufacturing
 

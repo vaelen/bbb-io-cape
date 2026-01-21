@@ -31,11 +31,13 @@ DC_SUPPLIED_SIZE = 2
 EEPROM_HEADER = bytes([0xAA, 0x55, 0x33, 0xEE])
 
 # Default values for BB-IO-CAPE
+# Note: U-Boot constructs overlay filename as {part_number}-{version}.dtbo
+# Part number should not have trailing spaces/nulls that could corrupt the filename
 DEFAULTS = {
     'board_name': 'BB-IO-CAPE',
-    'version': '0001',
+    'version': '00A0',
     'manufacturer': 'Andrew C. Young',
-    'part_number': 'BB-IO-CAPE-01',
+    'part_number': 'BB-IO-CAPE',       # Results in BB-IO-CAPE-00A0.dtbo
     'eeprom_rev': 'A1',
     'vdd_3v3b_ma': 50,   # Estimated current draw in mA
     'vdd_5v_ma': 0,      # Not using 5V rail
@@ -44,12 +46,16 @@ DEFAULTS = {
 }
 
 
-def pad_string(s: str, length: int) -> bytes:
-    """Pad a string with spaces to the specified length."""
+def pad_string(s: str, length: int, pad_char: bytes = b'\x00') -> bytes:
+    """Pad a string with null bytes to the specified length.
+
+    Using null padding instead of space padding ensures U-Boot correctly
+    identifies the end of the string when constructing overlay filenames.
+    """
     encoded = s.encode('ascii')
     if len(encoded) > length:
         raise ValueError(f"String '{s}' exceeds maximum length of {length}")
-    return encoded.ljust(length, b' ')
+    return encoded.ljust(length, pad_char)
 
 
 def generate_serial_number(assembly_code: str = 'CAPE') -> str:
